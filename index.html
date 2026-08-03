@@ -4069,6 +4069,177 @@ body{height:100vh}body.scanner-ui #unifiedTopBar{display:grid!important}
 })();
 </script>
 
+
+<!-- v106 LOCATION CAPACITY COLOR CODING -->
+<style>
+  #locationMapView .loc-summary{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(160px,1fr))!important;
+    gap:10px!important;
+  }
+  #locationMapView .loc-summary-card:nth-child(4){display:none!important}
+  #locationMapView .loc-summary-card{min-height:72px}
+  #locationMapView .loc-summary-card:nth-child(1){border-left-color:#2563eb}
+  #locationMapView .loc-summary-card:nth-child(2){border-left-color:#16a34a}
+  #locationMapView .loc-summary-card:nth-child(3){border-left-color:#d97706}
+
+  /* PL rack occupancy states: capacity = 30 boxes */
+  #warehouseMap .rack-cell{
+    position:relative;
+    min-height:26px;
+    padding:5px 3px 12px!important;
+    transition:transform .12s ease,box-shadow .12s ease,background .12s ease,border-color .12s ease;
+  }
+  #warehouseMap .rack-cell:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(15,23,42,.14)}
+  #warehouseMap .rack-cell.loc-empty-rack{background:#f1f5f9!important;border-color:#cbd5e1!important;color:#475569!important}
+  #warehouseMap .rack-cell.loc-available{background:#dcfce7!important;border-color:#22c55e!important;color:#166534!important}
+  #warehouseMap .rack-cell.loc-near{background:#fef3c7!important;border-color:#f59e0b!important;color:#92400e!important}
+  #warehouseMap .rack-cell.loc-almost{background:#ffedd5!important;border-color:#f97316!important;color:#9a3412!important}
+  #warehouseMap .rack-cell.loc-full{background:#fee2e2!important;border-color:#ef4444!important;color:#991b1b!important}
+  #warehouseMap .rack-cell.loc-over{background:#991b1b!important;border-color:#7f1d1d!important;color:#fff!important}
+  #warehouseMap .rack-cell.selected{outline:2px solid #2563eb!important;outline-offset:1px;box-shadow:0 0 0 3px rgba(37,99,235,.16)!important}
+  .loc-capacity-badge{
+    position:absolute;left:2px;right:2px;bottom:1px;
+    font-family:var(--mono);font-size:7px;line-height:9px;text-align:center;
+    font-weight:800;white-space:nowrap;opacity:.9;
+  }
+
+  /* Operational areas are visual references only. */
+  #warehouseMap .map-zone,
+  #warehouseMap .scanner-cell{
+    cursor:default!important;
+    pointer-events:none!important;
+    background:#e5e7eb!important;
+    border-color:#cbd5e1!important;
+    color:#64748b!important;
+    box-shadow:none!important;
+  }
+  #warehouseMap .map-zone:hover,#warehouseMap .scanner-cell:hover{transform:none!important;box-shadow:none!important}
+
+  .loc-legend{gap:10px!important}
+  .loc-dot.dot-rack-empty{background:#f1f5f9;border:1px solid #cbd5e1}
+  .loc-dot.dot-rack-open{background:#dcfce7;border:1px solid #22c55e}
+  .loc-dot.dot-rack-near{background:#fef3c7;border:1px solid #f59e0b}
+  .loc-dot.dot-rack-full{background:#fee2e2;border:1px solid #ef4444}
+  .loc-dot.dot-area{background:#e5e7eb;border:1px solid #cbd5e1}
+  @media(max-width:760px){#locationMapView .loc-summary{grid-template-columns:1fr!important}}
+</style>
+<script>
+(function(){
+  const CAPACITY106=30;
+  let capacityData106=Object.create(null);
+  let capacityLoaded106=false;
+  let capacityLoading106=false;
+
+  function key106(v){return String(v||'').trim().replace(/\s+/g,' ').toUpperCase();}
+  function fmt106(v){return Number(v||0).toLocaleString();}
+  function isPl106(v){return /^PL-\d+$/.test(key106(v));}
+  function set106(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+
+  function configureCapacityUi106(){
+    if(typeof ensureView==='function')ensureView();
+    const view=document.getElementById('locationMapView');if(!view)return;
+    const cards=view.querySelectorAll('.loc-summary-card');
+    if(cards[0]){const l=cards[0].querySelector('label');if(l)l.textContent='Total Boxes';}
+    if(cards[1]){const l=cards[1].querySelector('label');if(l)l.textContent='Total Qty';}
+    if(cards[2]){const l=cards[2].querySelector('label');if(l)l.textContent='Available Locations';}
+    const title=view.querySelector('.loc-header p');
+    if(title)title.textContent='PL racks carry inventory and have a capacity of 30 boxes. Gray operational areas are visual references only.';
+    const legend=view.querySelector('.loc-legend');
+    if(legend)legend.innerHTML=
+      '<span><i class="loc-dot dot-rack-empty"></i>Empty</span>'+ 
+      '<span><i class="loc-dot dot-rack-open"></i>1–15 boxes</span>'+ 
+      '<span><i class="loc-dot dot-rack-near"></i>16–24 boxes</span>'+ 
+      '<span><i class="loc-dot dot-rack-full"></i>25–30+ boxes</span>'+ 
+      '<span><i class="loc-dot dot-area"></i>Non-storage area</span>';
+  }
+
+  function occupancyClass106(count){
+    count=Number(count)||0;
+    if(count===0)return 'loc-empty-rack';
+    if(count<=15)return 'loc-available';
+    if(count<=24)return 'loc-near';
+    if(count<30)return 'loc-almost';
+    if(count===30)return 'loc-full';
+    return 'loc-over';
+  }
+
+  function renderCapacity106(res){
+    const data=res||{};
+    capacityData106=Object.create(null);
+    (data.locations||[]).forEach(x=>capacityData106[key106(x.code)]=x);
+    set106('locTotalLocations',fmt106(data.totalBoxes));
+    set106('locUsedLocations',fmt106(data.totalQty));
+    set106('locMappedQty',fmt106(data.availableLocations));
+
+    document.querySelectorAll('#warehouseMap .rack-cell[data-location]').forEach(el=>{
+      const code=key106(el.dataset.location);
+      const item=capacityData106[code]||{boxCount:0,totalQty:0,status:'EMPTY'};
+      el.classList.remove('loc-empty-rack','loc-available','loc-near','loc-almost','loc-full','loc-over');
+      el.classList.add(occupancyClass106(item.boxCount));
+      let badge=el.querySelector('.loc-capacity-badge');
+      if(!badge){badge=document.createElement('span');badge.className='loc-capacity-badge';el.appendChild(badge);}
+      badge.textContent=Number(item.boxCount||0)+'/'+CAPACITY106;
+      el.title=code+' • '+Number(item.boxCount||0)+' of '+CAPACITY106+' boxes • Qty: '+fmt106(item.totalQty)+' • '+String(item.status||'');
+    });
+  }
+
+  function loadCapacity106(force){
+    configureCapacityUi106();
+    if(capacityLoading106)return;
+    if(capacityLoaded106&&!force)return;
+    capacityLoading106=true;
+    set106('locTotalLocations','…');set106('locUsedLocations','…');set106('locMappedQty','…');
+    google.script.run.withSuccessHandler(res=>{
+      capacityLoading106=false;
+      if(!res||!res.success){toast((res&&res.message)||'Unable to load location capacity.','err');return;}
+      capacityLoaded106=true;renderCapacity106(res);
+    }).withFailureHandler(err=>{
+      capacityLoading106=false;toast((err&&err.message)||'Unable to load location capacity.','err');
+    }).getLocationCapacitySummary({token:sessionToken});
+  }
+
+  // Guard the existing lazy rack selector: only PL locations can open details.
+  const previousSelect106=window.selectLocation;
+  window.selectLocation=function(code){
+    if(!isPl106(code))return;
+    return previousSelect106.apply(this,arguments);
+  };
+
+  const previousShow106=window.showLocationMapping;
+  window.showLocationMapping=function(){
+    const out=previousShow106.apply(this,arguments);
+    configureCapacityUi106();
+    setTimeout(()=>loadCapacity106(false),0);
+    return out;
+  };
+
+  const previousClear106=window.loadLocationMapping;
+  window.loadLocationMapping=function(){
+    capacityLoaded106=false;
+    capacityData106=Object.create(null);
+    if(typeof previousClear106==='function')previousClear106.apply(this,arguments);
+    setTimeout(()=>loadCapacity106(true),0);
+  };
+
+  const oldFilter106=window.filterLocationMap;
+  window.filterLocationMap=function(){
+    const q=key106(document.getElementById('locSearch')?.value||'');
+    document.querySelectorAll('#warehouseMap .rack-cell[data-location]').forEach(el=>{
+      const code=key106(el.dataset.location);
+      const d=capacityData106[code]||{};
+      const hay=[code,d.status,d.boxCount,d.totalQty].join(' ').toUpperCase();
+      el.style.opacity=!q||hay.includes(q)?'1':'.16';
+    });
+    document.querySelectorAll('#warehouseMap .map-zone,#warehouseMap .scanner-cell').forEach(el=>el.style.opacity='1');
+  };
+
+  function boot106(){configureCapacityUi106();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot106);else setTimeout(boot106,0);
+  setTimeout(configureCapacityUi106,1300);
+})();
+</script>
+
 </body>
 </html>
 
