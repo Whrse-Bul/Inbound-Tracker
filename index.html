@@ -7142,3 +7142,194 @@ body.module-old{--module-accent:#64748b;--module-soft:#eef1f5}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,80));else setTimeout(init,80);
 })();
 </script>
+
+<!-- v109 STORAGE PLANNING - additive module only; no existing workflow changes -->
+<style id="storage-planning-v109">
+  #storagePlanningView{grid-column:1/-1;width:100%;height:100%;overflow:auto;padding:0 2px 34px;}
+  .sp-wrap{display:flex;flex-direction:column;gap:12px;}
+  .sp-head{background:linear-gradient(135deg,#122033,#1c3452);color:#fff;border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;gap:14px;align-items:flex-end;flex-wrap:wrap;}
+  .sp-head h2{font-family:var(--mono);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px;}
+  .sp-head p{font-size:11px;color:#cbd5e1;margin:0;}
+  .sp-filters{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+  .sp-field label{display:block;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cbd5e1;margin-bottom:3px;}
+  .sp-field input{height:32px;border:1px solid #49617c;border-radius:6px;background:#fff;color:#0f172a;padding:0 8px;font-family:var(--mono);font-size:11px;}
+  .sp-chip,.sp-load{height:32px;padding:0 10px;border-radius:6px;border:1px solid #49617c;background:#213a58;color:#fff;font-size:10px;font-weight:800;}
+  .sp-load{background:#168b4b;border-color:#168b4b;}
+  .sp-kpis{display:grid;grid-template-columns:repeat(8,minmax(125px,1fr));gap:9px;}
+  .sp-kpi{background:#fff;border:1px solid var(--border);border-radius:9px;padding:11px 12px;box-shadow:0 1px 3px rgba(0,0,0,.05);border-left:4px solid #2563eb;min-height:82px;}
+  .sp-kpi.green{border-left-color:#16a34a}.sp-kpi.orange{border-left-color:#d97706}.sp-kpi.red{border-left-color:#dc2626}.sp-kpi.purple{border-left-color:#7c3aed}
+  .sp-kpi label{display:block;font-size:8px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .sp-kpi strong{font-family:var(--mono);font-size:21px;color:#0f172a;display:block;line-height:1.05;}
+  .sp-kpi small{display:block;color:var(--muted);font-size:9px;margin-top:5px;}
+  .sp-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:12px;align-items:start;}
+  .sp-panel{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
+  .sp-panel h3{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);border-bottom:1px solid var(--border);padding-bottom:6px;margin:0 0 9px;}
+  .sp-status{border-radius:10px;padding:14px;border:1px solid var(--border);background:#f8fafc;}
+  .sp-status strong{display:block;font-family:var(--mono);font-size:22px;margin-bottom:5px;}
+  .sp-status.safe strong{color:#15803d}.sp-status.watch strong{color:#b45309}.sp-status.critical strong,.sp-status.over strong{color:#b91c1c}
+  .sp-status p{font-size:11px;color:#475569;line-height:1.55;margin:0;}
+  .sp-bar-row{display:grid;grid-template-columns:145px 1fr 72px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:10px;}
+  .sp-track{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;position:relative;}
+  .sp-fill{height:100%;background:#2563eb;border-radius:999px;}
+  .sp-fill.net{background:#16a34a;}
+  .sp-table-wrap{overflow:auto;max-height:330px;}
+  .sp-table{width:100%;border-collapse:collapse;font-size:10.5px;}
+  .sp-table th,.sp-table td{padding:7px 8px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}
+  .sp-table th{position:sticky;top:0;background:#f8fafc;color:var(--muted);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;z-index:2;}
+  .sp-rack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+  .sp-rack{border:1px solid var(--border);border-radius:8px;padding:8px;background:#f8fafc;}
+  .sp-rack b{font-family:var(--mono);font-size:11px}.sp-rack span{display:block;font-size:9px;color:var(--muted);margin-top:3px;}
+  .sp-note{font-size:10px;color:var(--muted);line-height:1.5;padding:5px 0;}
+  @media(max-width:1400px){.sp-kpis{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:1000px){.sp-grid{grid-template-columns:1fr}.sp-rack-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:760px){.sp-kpis{grid-template-columns:repeat(2,1fr)}.sp-rack-grid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+  'use strict';
+  let spLastData=null;
+  const el=id=>document.getElementById(id);
+  const n=v=>Number(v)||0;
+  const fmt=v=>Math.round(n(v)).toLocaleString();
+  const pct=v=>(n(v)*100).toFixed(1)+'%';
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function dateKey(d){return d.toISOString().slice(0,10);}
+  function addDays(d,days){const x=new Date(d);x.setDate(x.getDate()+days);return x;}
+
+  function ensureStoragePlanningNav(){
+    if(el('nav-storage-planning')) return;
+    const loc=el('nav-location');
+    const team=el('nav-team');
+    const anchor=loc||team;
+    if(!anchor) return;
+    const nav=document.createElement('div');
+    nav.className='nav-item'; nav.id='nav-storage-planning';
+    nav.innerHTML='&#128230; Storage Planning';
+    nav.onclick=showStoragePlanning;
+    anchor.insertAdjacentElement('afterend',nav);
+  }
+  function ensureStoragePlanningView(){
+    if(el('storagePlanningView')) return;
+    const main=document.querySelector('.main-wrapper'); if(!main) return;
+    const view=document.createElement('div'); view.id='storagePlanningView'; view.className='hidden';
+    view.innerHTML=`<div class="sp-wrap">
+      <div class="sp-head">
+        <div><h2>Storage Planning</h2><p>Warehouse capacity, incoming inventory, and storage utilization forecast.</p></div>
+        <div class="sp-filters">
+          <div class="sp-field"><label>Start Date</label><input type="date" id="spStart"></div>
+          <div class="sp-field"><label>End Date</label><input type="date" id="spEnd"></div>
+          <button class="sp-chip" onclick="setStoragePlanningPreset('30')">30 Days</button>
+          <button class="sp-chip" onclick="setStoragePlanningPreset('90')">90 Days</button>
+          <button class="sp-chip" onclick="setStoragePlanningPreset('q4')">Q4</button>
+          <button class="sp-load" id="spLoadBtn" onclick="loadStoragePlanning()">LOAD PLAN</button>
+        </div>
+      </div>
+      <div class="sp-kpis">
+        <div class="sp-kpi"><label>Total Storage Slots</label><strong id="spTotalSlots">0</strong><small id="spRackMeta">0 racks</small></div>
+        <div class="sp-kpi green"><label>Current Boxes</label><strong id="spCurrentBoxes">0</strong><small id="spCurrentOcc">0% occupied</small></div>
+        <div class="sp-kpi green"><label>Free Slots Now</label><strong id="spFreeNow">0</strong><small id="spAvailRacks">0 available racks</small></div>
+        <div class="sp-kpi purple"><label>Incoming Forecast</label><strong id="spIncomingBoxes">0</strong><small id="spIncomingQty">0 expected qty</small></div>
+        <div class="sp-kpi orange"><label>Gross Peak Occupancy</label><strong id="spGrossPeak">0%</strong><small>conservative, no releases</small></div>
+        <div class="sp-kpi green"><label>Net Peak Estimate</label><strong id="spNetPeak">0%</strong><small id="spReleaseRate">0 boxes/day outbound</small></div>
+        <div class="sp-kpi red"><label>Capacity Gap</label><strong id="spGap">0</strong><small id="spRackNeed">0 extra racks</small></div>
+        <div class="sp-kpi"><label>Planning Period</label><strong id="spDays">0d</strong><small id="spPeriodText">-</small></div>
+      </div>
+      <div class="sp-grid">
+        <div class="sp-panel"><h3>Storage Projection Timeline</h3><div id="spProjection"></div></div>
+        <div class="sp-panel"><h3>Capacity Assessment</h3><div id="spAssessment"></div></div>
+      </div>
+      <div class="sp-grid">
+        <div class="sp-panel"><h3>Incoming Deliveries</h3><div class="sp-table-wrap" id="spIncoming"></div></div>
+        <div class="sp-panel"><h3>Recommended Storage Racks</h3><div id="spRacks"></div></div>
+      </div>
+      <div class="sp-panel"><h3>Planning Assumptions</h3><div id="spAssumptions"></div></div>
+    </div>`;
+    main.appendChild(view);
+  }
+
+  window.setStoragePlanningPreset=function(mode){
+    ensureStoragePlanningView();
+    const today=new Date(); let start=new Date(today), end=new Date(today);
+    if(mode==='30') end=addDays(today,29);
+    else if(mode==='90') end=addDays(today,89);
+    else if(mode==='q4'){
+      const y=today.getFullYear();
+      start=new Date(y,9,1); end=new Date(y,11,31);
+      if(today>end){start=new Date(y+1,9,1);end=new Date(y+1,11,31);}
+    }
+    el('spStart').value=dateKey(start); el('spEnd').value=dateKey(end);
+  };
+
+  window.showStoragePlanning=function(){
+    if(typeof currentUser==='undefined'||!currentUser) return typeof toast==='function'&&toast('Please log in first.','warn');
+    if(typeof isAdminUser==='function'&&!isAdminUser()) return typeof toast==='function'&&toast('Admin access required.','warn');
+    ensureStoragePlanningNav(); ensureStoragePlanningView();
+    if(typeof hideAllViews==='function') hideAllViews();
+    document.body.classList.add('dashboard-wide');
+    el('nav-storage-planning').classList.add('active');
+    el('storagePlanningView').classList.remove('hidden');
+    if(!el('spStart').value||!el('spEnd').value) setStoragePlanningPreset('90');
+    loadStoragePlanning();
+  };
+
+  window.loadStoragePlanning=function(){
+    if(!el('storagePlanningView')) return;
+    const btn=el('spLoadBtn'); if(btn){btn.disabled=true;btn.textContent='LOADING...';}
+    if(typeof showLoader==='function') showLoader(true);
+    google.script.run.withSuccessHandler(res=>{
+      if(typeof showLoader==='function') showLoader(false);
+      if(btn){btn.disabled=false;btn.textContent='LOAD PLAN';}
+      if(!res||!res.success){if(typeof toast==='function')toast((res&&res.message)||'Unable to load Storage Planning.','err');return;}
+      spLastData=res; renderStoragePlanning(res);
+    }).withFailureHandler(err=>{
+      if(typeof showLoader==='function') showLoader(false);
+      if(btn){btn.disabled=false;btn.textContent='LOAD PLAN';}
+      if(typeof toast==='function')toast((err&&err.message)||'Unable to load Storage Planning.','err');
+    }).getStoragePlanning({token:sessionToken,start:el('spStart').value,end:el('spEnd').value});
+  };
+
+  function renderStoragePlanning(d){
+    const c=d.capacity||{}, f=d.forecast||{};
+    el('spTotalSlots').textContent=fmt(c.totalSlots); el('spRackMeta').textContent=fmt(c.totalRacks)+' racks x '+fmt(c.capacityPerRack)+' slots';
+    el('spCurrentBoxes').textContent=fmt(c.currentBoxes); el('spCurrentOcc').textContent=pct(c.currentOccupancy)+' occupied';
+    el('spFreeNow').textContent=fmt(c.freeSlotsNow); el('spAvailRacks').textContent=fmt(c.availableRacks)+' racks with space';
+    el('spIncomingBoxes').textContent=fmt(f.incomingBoxes); el('spIncomingQty').textContent=fmt(f.incomingQty)+' expected qty';
+    el('spGrossPeak').textContent=pct(f.grossPeakOccupancy); el('spNetPeak').textContent=pct(f.netPeakOccupancy);
+    el('spReleaseRate').textContent=(n(f.historicalPullOutBoxesPerDay)).toFixed(1)+' boxes/day historical pull-out';
+    el('spGap').textContent=fmt(f.capacityGap); el('spRackNeed').textContent=fmt(f.additionalRacksNeeded)+' extra racks at peak';
+    const days=Math.max(1,Math.round((new Date(d.end+'T00:00:00')-new Date(d.start+'T00:00:00'))/86400000)+1);
+    el('spDays').textContent=days+'d'; el('spPeriodText').textContent=d.start+' to '+d.end;
+
+    const st=String(f.status||'SAFE'); const cls=st==='SAFE'?'safe':st==='WATCH'?'watch':st==='CRITICAL'?'critical':'over';
+    let action='Current storage buffer is sufficient for the selected planning period.';
+    if(st==='WATCH') action='Capacity is getting tight. Reserve high-free-slot racks and review outbound timing before major arrivals.';
+    if(st==='CRITICAL') action='Peak storage is close to full. Accelerate pull-out/transfer activity and prepare contingency space.';
+    if(st==='OVER CAPACITY') action='Forecast exceeds PL rack capacity. Additional storage or pre-arrival inventory release is required.';
+    el('spAssessment').innerHTML=`<div class="sp-status ${cls}"><strong>${esc(st)}</strong><p>${esc(action)}</p><p style="margin-top:8px"><b>Gross peak:</b> ${fmt(f.grossPeakBoxes)} boxes (${pct(f.grossPeakOccupancy)})<br><b>Net estimate:</b> ${fmt(f.netPeakBoxes)} boxes (${pct(f.netPeakOccupancy)})<br><b>Current free space:</b> ${fmt(c.freeSlotsNow)} slots</p></div>`;
+
+    const weeks=d.weekly||[]; const cap=Math.max(1,n(c.totalSlots));
+    el('spProjection').innerHTML=weeks.length?weeks.map(w=>{
+      const gp=Math.min(100,n(w.grossOccupancy)*100), np=Math.min(100,n(w.netOccupancy)*100);
+      return `<div class="sp-bar-row"><div><b>${esc(w.start)}</b><br><span style="color:var(--muted)">${esc(w.end)} | +${fmt(w.incomingBoxes)} boxes</span></div><div><div class="sp-track" title="Gross ${pct(w.grossOccupancy)}"><div class="sp-fill" style="width:${gp}%"></div></div><div class="sp-track" style="margin-top:4px" title="Net ${pct(w.netOccupancy)}"><div class="sp-fill net" style="width:${np}%"></div></div></div><div style="text-align:right;font-family:var(--mono)">${pct(w.grossOccupancy)}<br><span style="color:#15803d">${pct(w.netOccupancy)}</span></div></div>`;
+    }).join(''):'<div class="dash-empty">No projection data.</div>';
+
+    const rows=d.incoming||[];
+    el('spIncoming').innerHTML=rows.length?`<table class="sp-table"><thead><tr><th>ETA</th><th>Supplier</th><th>Item</th><th>Expected Qty</th><th>Forecast Boxes</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.supplier||'-')}</td><td>${esc(r.itemName||'-')}</td><td>${fmt(r.expectedQty)}</td><td title="${esc(r.boxSource||'')}">${fmt(r.expectedBoxes)}</td><td>${esc(r.inboundStatus||'-')}</td></tr>`).join('')}</tbody></table>`:'<div class="dash-empty">No unfinished inbound deliveries in this planning period.</div>';
+
+    const racks=d.recommendedRacks||[];
+    el('spRacks').innerHTML=racks.length?`<div class="sp-rack-grid">${racks.map(r=>`<div class="sp-rack"><b>${esc(r.code)}</b><span>${fmt(r.availableSlots)} free slots</span><span>${fmt(r.boxCount)}/${fmt(c.capacityPerRack)} boxes | ${pct(r.occupancy)}</span></div>`).join('')}</div>`:'<div class="dash-empty">No available PL racks.</div>';
+    el('spAssumptions').innerHTML=(d.assumptions||[]).map(x=>`<div class="sp-note">- ${esc(x)}</div>`).join('');
+  }
+
+  const oldHide=window.hideAllViews;
+  window.hideAllViews=function(){
+    if(typeof oldHide==='function') oldHide();
+    const v=el('storagePlanningView'); if(v)v.classList.add('hidden');
+    const n1=el('nav-storage-planning'); if(n1)n1.classList.remove('active');
+  };
+
+  function boot(){ensureStoragePlanningNav();ensureStoragePlanningView();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
+  setInterval(()=>{ensureStoragePlanningNav();ensureStoragePlanningView();},3000);
+})();
+</script>
