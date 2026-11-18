@@ -678,6 +678,17 @@ body.dashboard-wide #teamView .kpi-card{
   max-width:none!important;
 }
 
+
+/* v113 dashboard-only visualization */
+.v113-week-legend{display:flex;gap:13px;flex-wrap:wrap;margin:10px 0 6px;font-size:11px;color:#805038}
+.v113-week-legend span{display:inline-flex;align-items:center;gap:5px}.v113-swatch{width:10px;height:10px;border-radius:2px;display:inline-block}
+.v113-week-svg{width:100%;height:auto;min-height:200px;display:block;overflow:visible}
+.v113-emp-wrap{display:grid;grid-template-columns:minmax(150px,44%) minmax(170px,1fr);align-items:center;gap:12px;padding-top:12px}
+.v113-donut{width:100%;max-width:270px;height:auto;display:block;margin:auto}
+.v113-emp-legend{max-height:270px;overflow:auto;display:flex;flex-direction:column;gap:7px}
+.v113-emp-line{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:7px;font-size:11px}
+.v113-emp-name{overflow-wrap:anywhere}.v113-emp-qty{white-space:nowrap;font-weight:700}
+@media(max-width:1050px){.v113-emp-wrap{grid-template-columns:1fr}.v113-donut{max-width:210px}}
 </style>
 
 <style>
@@ -4123,7 +4134,43 @@ function v112SaveEmployee(){
 }
 function v111ShowDashboard(){hideAllViews();document.body.classList.add('dashboard-wide');document.getElementById('nav-me').classList.add('active');document.getElementById('v111TeamView').classList.remove('hidden');v111LoadDashboard()}
 function v111LoadDashboard(){const date=document.getElementById('v111DashDate').value;if(!date)return;const b=document.getElementById('v111Refresh');b.disabled=true;b.textContent='Loading...';google.script.run.withSuccessHandler(d=>{b.disabled=false;b.textContent='Refresh';if(d&&d.error)return toast(d.error,'err');v111RenderDashboard(d||{})}).withFailureHandler(e=>{b.disabled=false;b.textContent='Refresh';toast(e.message||'Dashboard failed','err')}).v111GetOutputDashboard(date)}
-function v111RenderDashboard(d){const f=n=>Number(n||0).toLocaleString('en-PH');document.getElementById('v111Qty').textContent=f(d.totalQty);document.getElementById('v111Boxes').textContent=f(d.totalBoxes);document.getElementById('v111Active').textContent=f(d.activeEmployees);document.getElementById('v111Target').textContent=d.targetPct==null?'Not set':d.targetPct+'%';const week=d.week||[];const max=Math.max(1,...week.map(x=>x.total||0));document.getElementById('v111WeekChart').innerHTML=week.map(day=>'<div class="v111-bar-row"><span>'+v111Escape(day.day)+'</span><div class="v111-track"><div class="v111-fill" style="width:'+Math.round((day.total||0)/max*100)+'%"></div></div><strong>'+f(day.total)+'</strong></div><small>'+Object.entries(day.categories||{}).map(([k,v])=>v111Escape(k)+': '+f(v)).join(' · ')+'</small>').join('')||'No records';const people=d.employees||[];const maxP=Math.max(1,...people.map(x=>x.qty||0));document.getElementById('v111EmpChart').innerHTML=people.map(p=>'<div class="v111-bar-row"><span title="'+v111Escape(p.name)+'">'+v111Escape(p.name)+'</span><div class="v111-track"><div class="v111-fill" style="width:'+Math.round(p.qty/maxP*100)+'%"></div></div><strong>'+f(p.qty)+'</strong></div>').join('')||'<p>No scanning records for selected date.</p>';document.getElementById('v111EmpRows').innerHTML=people.map(p=>'<tr><td>'+v111Escape(p.name)+'</td><td>'+f(p.qty)+'</td><td>'+f(p.boxes)+'</td><td>'+Object.entries(p.categories||{}).map(([k,v])=>v111Escape(k)+': '+f(v)).join(' · ')+'</td></tr>').join('')||'<tr><td colspan="4">No scanning output</td></tr>'}
+function v111RenderDashboard(d){
+  const f=n=>Number(n||0).toLocaleString('en-PH');
+  document.getElementById('v111Qty').textContent=f(d.totalQty);
+  document.getElementById('v111Boxes').textContent=f(d.totalBoxes);
+  document.getElementById('v111Active').textContent=f(d.activeEmployees);
+  document.getElementById('v111Target').textContent=d.targetPct==null?'Not set':d.targetPct+'%';
+  v113RenderWeekly(d.week||[]);
+  v113RenderEmployees(d.employees||[]);
+  document.getElementById('v111EmpRows').innerHTML=(d.employees||[]).map(p=>'<tr><td>'+v111Escape(p.name)+'</td><td>'+f(p.qty)+'</td><td>'+f(p.boxes)+'</td><td>'+Object.entries(p.categories||{}).map(([k,v])=>v111Escape(k)+': '+f(v)).join(' · ')+'</td></tr>').join('')||'<tr><td colspan="4">No scanning output</td></tr>';
+}
+function v113RenderWeekly(week){
+  const host=document.getElementById('v111WeekChart');
+  const cats=[{name:'New Delivery',color:'#B85F3D',keys:['New Delivery']},{name:'Pull Out',color:'#D9A15B',keys:['Pull Out']},{name:'Aging / Sorting',color:'#577F79',keys:['Aging/Scanning','Aging / Scanning','Aging/Sorting','Aging / Sorting']}];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat'].map((day,i)=>week.find(x=>x.day===day)||{day,categories:{}});
+  const values=days.map(d=>cats.map(c=>c.keys.reduce((sum,key)=>sum+(Number((d.categories||{})[key])||0),0)));
+  const max=Math.max(1,...values.flat());const width=720,height=258,left=47,right=10,top=22,bottom=40,plotH=height-top-bottom,groupW=(width-left-right)/6;
+  const y=v=>top+plotH-(v/max)*plotH;
+  let svg='<svg class="v113-week-svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Grouped vertical scanning output bars by weekday and category">';
+  for(let t=0;t<=4;t++){const val=max*t/4,yy=y(val);svg+='<line x1="'+left+'" y1="'+yy+'" x2="'+(width-right)+'" y2="'+yy+'" stroke="#DDD3C2" stroke-width="1"/><text x="'+(left-7)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#805038">'+Math.round(val).toLocaleString('en-PH')+'</text>'}
+  days.forEach((d,i)=>{const gx=left+i*groupW;if(i)svg+='<line x1="'+gx+'" y1="'+top+'" x2="'+gx+'" y2="'+(top+plotH)+'" stroke="#B6A69B" stroke-width="1" stroke-dasharray="4 5"/>';
+    values[i].forEach((v,j)=>{const barW=Math.min(22,groupW/4.5),bx=gx+groupW/2+(j-1)*barW*1.12-barW/2,by=y(v),bh=top+plotH-by;
+      if(v>0)svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1,bh).toFixed(1)+'" rx="2" fill="'+cats[j].color+'"><title>'+d.day+' · '+cats[j].name+': '+v.toLocaleString('en-PH')+' pcs</title></rect>';});
+    svg+='<text x="'+(gx+groupW/2).toFixed(1)+'" y="'+(height-12)+'" text-anchor="middle" font-size="12" fill="#25241F">'+d.day+'</text>';
+  });svg+='</svg>';
+  host.innerHTML='<div class="v113-week-legend">'+cats.map(c=>'<span><i class="v113-swatch" style="background:'+c.color+'"></i>'+c.name+'</span>').join('')+'</div>'+svg;
+}
+function v113RenderEmployees(people){
+  const host=document.getElementById('v111EmpChart');const list=people.filter(p=>Number(p.qty)>0),total=list.reduce((s,p)=>s+Number(p.qty||0),0);
+  if(!total){host.innerHTML='<p>No scanning records for selected date.</p>';return;}
+  const colors=['#B85F3D','#D9A15B','#577F79','#6B7EA3','#A47A92','#88A365','#8A6E59','#4F9EAE','#C77A62','#8670AA'];
+  const r=72,c=110,circ=2*Math.PI*r;let acc=0;
+  let svg='<svg class="v113-donut" viewBox="0 0 220 220" role="img" aria-label="Employee shares of daily scanned quantity">';
+  list.forEach((p,i)=>{const pct=Number(p.qty)/total,len=pct*circ;svg+='<circle cx="'+c+'" cy="'+c+'" r="'+r+'" fill="none" stroke="'+colors[i%colors.length]+'" stroke-width="40" stroke-dasharray="'+len+' '+(circ-len)+'" stroke-dashoffset="'+(-acc)+'" transform="rotate(-90 110 110)"><title>'+v111Escape(p.name)+': '+Number(p.qty).toLocaleString('en-PH')+' pcs ('+(pct*100).toFixed(1)+'%)</title></circle>';acc+=len;});
+  svg+='<circle cx="110" cy="110" r="49" fill="#FFF9F5"/><text x="110" y="106" text-anchor="middle" font-size="21" font-weight="700" fill="#25241F">'+total.toLocaleString('en-PH')+'</text><text x="110" y="124" text-anchor="middle" font-size="11" fill="#805038">Total Qty</text></svg>';
+  const legend=list.map((p,i)=>'<div class="v113-emp-line"><i class="v113-swatch" style="background:'+colors[i%colors.length]+'"></i><span class="v113-emp-name" title="'+v111Escape(p.name)+'">'+v111Escape(p.name)+'</span><span class="v113-emp-qty">'+Number(p.qty).toLocaleString('en-PH')+' · '+(Number(p.qty)/total*100).toFixed(1)+'%</span></div>').join('');
+  host.innerHTML='<div class="v113-emp-wrap">'+svg+'<div class="v113-emp-legend">'+legend+'</div></div>';
+}
 function v111Escape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 </script>
 </body>
