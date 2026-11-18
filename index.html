@@ -46,9 +46,9 @@ const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz4QLCJfMPf5xqf
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
     :root {
-      --primary:#1a73e8; --sidebar:#1c1f26; --bg:#f0f2f5; --surface:#fff;
-      --text:#2d3748; --muted:#718096; --success:#16a34a; --danger:#dc2626;
-      --warning:#d97706; --border:#e2e8f0;
+      --primary:#B85F3D; --sidebar:#25241F; --bg:#F3EDEF; --surface:#FFF9F5;
+      --text:#25241F; --muted:#805038; --success:#16a34a; --danger:#dc2626;
+      --warning:#d97706; --border:#DDD3C2;
       --mono:'IBM Plex Mono',monospace; --sans:'Google Sans','Roboto',Arial,sans-serif;
     }
     *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
@@ -697,6 +697,42 @@ body.dashboard-wide #teamView .kpi-card{
 @media(max-width:1200px){.team-tl-row{grid-template-columns:1fr}.team-tl-kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 
+
+<style id="v111-layout">
+#statusBar,#bauActivityBar,#loginOverlay,.user-chip,.top-operation-bar{display:none!important}
+.sidebar{width:192px!important;transition:width .2s ease;min-width:0;overflow:hidden}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:13px 9px 13px 12px}
+.v111-toggle{background:transparent;border:1px solid #66584e;color:#fff;border-radius:6px;padding:6px 9px;cursor:pointer}
+.v111-side-clock{padding:12px 14px;color:#fff;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid #54453b;font-size:11px}
+.v111-side-clock strong{font-size:13px}.v111-side-clock-icon{display:none}
+body.v111-collapsed .sidebar{width:55px!important}
+body.v111-collapsed .v111-side-text,body.v111-collapsed .nav-label,body.v111-collapsed .nav-divider,body.v111-collapsed .v111-nav-text{display:none!important}
+body.v111-collapsed .sidebar-header{justify-content:center;padding:10px 2px}
+body.v111-collapsed .v111-side-clock{padding:12px 0;text-align:center}
+body.v111-collapsed .v111-side-clock-icon{display:block}
+body.v111-collapsed .nav-item{font-size:0!important;padding:10px 14px;white-space:nowrap}
+body.v111-collapsed .nav-item::first-letter{font-size:16px}
+.main-wrapper{grid-template-rows:1fr!important}
+.v111-emp-wrap{display:flex;gap:5px;align-items:center}.v111-emp-wrap select{min-width:0;flex:1;width:100%;height:34px}
+.v111-emp-wrap button{border:0;border-radius:5px;background:#B85F3D;color:white;font-weight:700;padding:7px 12px;cursor:pointer}
+.v111-first-row{display:grid;grid-template-columns:minmax(165px,36%) minmax(0,1fr);gap:10px;align-items:end}
+.v111-first-row .wh-field{min-width:0}
+.v111-team-view{grid-column:1/-1;overflow:auto;padding:8px;min-height:0;color:#25241F}
+.v111-team-heading,.v111-chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.v111-team-heading h2{margin:0}.v111-team-heading p{color:#805038;margin:4px 0 14px}
+.v111-team-heading button{border:0;border-radius:6px;background:#B85F3D;color:#fff;padding:9px 16px;cursor:pointer}
+.v111-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0}
+.v111-kpis>div,.v111-team-grid>section,.v111-team-table{background:#FFF9F5;border:1px solid #DDD3C2;border-radius:10px;padding:15px}
+.v111-kpis small{display:block;color:#805038}.v111-kpis strong{display:block;font-size:26px;margin-top:8px}
+.v111-team-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.v111-chart{min-height:230px;overflow:auto}.v111-chart h4{font-size:11px;color:#805038;margin:10px 0 5px}
+.v111-bar-row{display:grid;grid-template-columns:110px minmax(80px,1fr) 62px;align-items:center;gap:8px;margin:8px 0;font-size:11px}
+.v111-track{height:12px;background:#eee2d8;border-radius:5px;overflow:hidden}.v111-fill{height:100%;background:#B85F3D}
+.v111-week-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;margin-top:10px}
+.v111-week-legend i{display:inline-block;width:9px;height:9px;margin-right:4px}
+.v111-team-table{margin-top:12px}.v111-scroll{max-height:330px;overflow:auto}.v111-team-table table{width:100%;border-collapse:collapse}.v111-team-table th,.v111-team-table td{padding:9px;text-align:left;border-bottom:1px solid #DDD3C2;font-size:12px}
+@media(max-width:800px){.v111-team-grid{grid-template-columns:1fr}.v111-kpis{grid-template-columns:repeat(2,1fr)}.v111-first-row{grid-template-columns:1fr}.sidebar{width:100%!important}body.v111-collapsed .sidebar{width:55px!important}}
+</style>
 </head>
 <body id="appBody">
 
@@ -753,25 +789,27 @@ body.dashboard-wide #teamView .kpi-card{
 <div class="app-body">
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-header">WAREHOUSE OPS<small>SCANNING SYSTEM</small></div>
+    <div class="sidebar-header"><span class="v111-side-text">WAREHOUSE OPS<small>SCANNING SYSTEM</small></span><button class="v111-toggle" type="button" onclick="v111ToggleSidebar()" title="Collapse or expand sidebar">☰</button></div><div class="v111-side-clock"><span class="v111-side-text" id="v111Date"></span><strong class="v111-side-text" id="v111Time"></strong><span class="v111-side-clock-icon">◷</span></div>
     <div class="nav-group">
       <div class="nav-label">Operations</div>
       <div class="nav-item active" id="nav-new"    onclick="setCategory('NEW DELIVER ITEM')">📦 New Delivery</div>
       <div class="nav-item"        id="nav-pull"   onclick="setCategory('PULL OUT ITEM')">🔄 Pull Out</div>
       <div class="nav-item"        id="nav-aging"  onclick="setCategory('AGING/SCANNING')">🕐 Aging/Scanning</div>
       <div class="nav-item"        id="nav-old"    onclick="setCategory('OLD STOCK')">⚠️ Old Stock</div>
+      <div class="nav-item" id="nav-transfer" onclick="whShow('transfer')">🚚 Box Transfer</div>
+      <div class="nav-item" id="nav-sorting" onclick="whShow('sorting')">📦 Box Sorting</div>
       <div class="nav-divider"></div>
-      <div class="nav-label">Tracking</div>
+      <div class="nav-label">Performance</div>
       <div class="nav-item hidden" id="nav-bau" onclick="openNonBauModal('start')">📝 Non-BAU Activity</div>
-      <div class="nav-item" id="nav-me"     onclick="showMyDashboard()">👤 My Dashboard</div>
-      <div class="nav-item" id="nav-ops"    onclick="showOperationsDashboard()">📊 Operations Dashboard</div>
-      <div class="nav-item" id="nav-team"   onclick="showTeamDashboard()">👥 Team Dashboard</div>
+      <div class="nav-item" id="nav-me" onclick="v111ShowDashboard()">📊 <span class="v111-nav-text">Team Dashboard</span></div>
+
+
     </div>
     <div class="user-chip">
-      Logged in as
-      <strong id="loggedUserName">—</strong>
+      <span class="v111-side-text">No login required</span>
+      <strong id="loggedUserName" class="hidden">—</strong>
       <span id="loggedUserMeta"></span>
-      <span class="logout-link" onclick="logoutUser()">Logout</span>
+      <span class="logout-link hidden" onclick="logoutUser()">Logout</span>
     </div>
   </div>
 
@@ -804,7 +842,7 @@ body.dashboard-wide #teamView .kpi-card{
       <div class="metadata-grid">
         <div><label>Box Tracking No *</label><input type="text" id="boxNo" maxlength="11" oninput="this.value=this.value.toUpperCase()" placeholder="e.g. ID26-123456"></div>
         <div><label>Station</label><select id="station"></select></div>
-        <div><label>Scan By</label><input type="text" id="scanBy" readonly placeholder="Login required"></div>
+        <div><label>Scan By</label><div class="v111-emp-wrap"><select id="v111ScanEmployee" onchange="v111EmployeeChanged(this)"></select><button type="button" onclick="v111AddEmployee()" title="Add employee">+</button></div><input type="text" id="scanBy" class="hidden" readonly></div>
         <div id="supplierBoxDiv"><label>Supplier Box</label><input type="number" id="supplierBox"></div>
         <div id="fixedPODiv">
           <label>PO Month / Year</label>
@@ -848,6 +886,30 @@ body.dashboard-wide #teamView .kpi-card{
         </table>
       </div>
     </div>
+
+
+    <div id="v111TeamView" class="hidden v111-team-view">
+      <div class="v111-team-heading"><div><h2>Team Dashboard</h2><p>Completed scanning output — based on saved warehouse records</p></div><button onclick="v111LoadDashboard()" id="v111Refresh">Refresh</button></div>
+      <div class="v111-kpis"><div><small>Yesterday Qty</small><strong id="v111Qty">—</strong></div><div><small>Yesterday Boxes</small><strong id="v111Boxes">—</strong></div><div><small>Active Employees</small><strong id="v111Active">—</strong></div><div><small>Daily Target Achievement</small><strong id="v111Target">—</strong></div></div>
+      <div class="v111-team-grid"><section><h3>Weekly Scanning Output by Category</h3><div id="v111WeekChart" class="v111-chart"></div><small>Monday–Saturday. Sunday has no duty target.</small></section><section><div class="v111-chart-head"><h3>Daily Output by Employee</h3><input id="v111DashDate" type="date" onchange="v111LoadDashboard()"></div><div id="v111EmpChart" class="v111-chart"></div></section></div>
+      <section class="v111-team-table"><h3>Employee Output Details</h3><div class="v111-scroll"><table><thead><tr><th>Employee</th><th>Qty Scanned</th><th>Boxes</th><th>Category Breakdown</th></tr></thead><tbody id="v111EmpRows"></tbody></table></div><small>Box Transfer and Box Sorting are excluded from scanning totals to avoid double counting.</small></section>
+    </div>
+    <div id="whTransferView" class="hidden wh-module">
+      <section class="wh-work"><h2>Box Transfer</h2><p>Scan boxes and assign category and department per box.</p>
+        <div class="v111-first-row"><div class="wh-field"><label>Employee</label><div class="v111-emp-wrap"><select id="v111TransferEmployee" onchange="v111EmployeeChanged(this)"></select><button type="button" onclick="v111AddEmployee()">+</button></div></div><div class="wh-field"><label>Box Tracking No.</label><div class="wh-inline"><input id="whTransferScan" placeholder="Scan box tracking" onkeydown="if(event.key==='Enter')whOpenTransferBox()"><button onclick="whOpenTransferBox()">Add Box</button></div></div></div>
+        <h3>Transfer Queue <span id="whTransferCount">0</span></h3><div class="wh-scroll"><table><thead><tr><th>Box</th><th>Category</th><th>Dept</th><th></th></tr></thead><tbody id="whTransferQueue"></tbody></table></div>
+        <div class="wh-actions"><button onclick="whSubmitTransfer()">Transfer Selected / Save Batch</button><button class="wh-secondary" onclick="whCloseTransfer()">Done Transfer</button></div>
+      </section><section class="wh-live"><div class="wh-inline wh-between"><h3>Transfer Records — Google Sheets</h3><button class="wh-secondary" onclick="whLoadTransfers()">Refresh</button></div><input id="whTransferFilter" placeholder="Filter records…" oninput="whRenderTransfers()"><div class="wh-scroll"><table><thead><tr><th>Box Tracking No</th><th>Dept</th><th>Status</th><th>Received Date</th><th>Received By</th></tr></thead><tbody id="whTransferRecords"></tbody></table></div></section>
+    </div>
+    <div id="whSortingView" class="hidden wh-module">
+      <section class="wh-work"><h2>Box Sorting</h2><p>Selected SKU rows transfer their full remaining quantities.</p>
+        <div class="v111-first-row"><div class="wh-field"><label>Employee</label><div class="v111-emp-wrap"><select id="v111SortingEmployee" onchange="v111EmployeeChanged(this)"></select><button type="button" onclick="v111AddEmployee()">+</button></div></div><div class="wh-field"><label>Old Box Tracking No.</label><div class="wh-inline"><input id="whOldBox" placeholder="Scan old box" onkeydown="if(event.key==='Enter')whLoadSource()"><button id="whLoadSourceBtn" onclick="whLoadSource()">Load</button><span id="whSourceLoading" class="hidden wh-loading">⏳ Syncing SKU records...</span></div></div></div>
+        <h3>Pending SKU Rows <span id="whSortCount">0</span></h3><div class="wh-scroll"><table><thead><tr><th>Select</th><th>Item / Barcode</th><th>Color / Size</th><th>Qty</th></tr></thead><tbody id="whSortRows"></tbody></table></div>
+        <div class="wh-actions"><button onclick="whSubmitSorting()">Transfer Selected</button><button class="wh-secondary" onclick="whDoneSorting()">Done Sorting</button></div>
+      </section><section class="wh-live"><div class="wh-inline wh-between"><h3>Live History (Last 50) — Aging/Scanning</h3><button class="wh-secondary" onclick="whLoadSortingHistory()">Refresh</button></div><input id="whSortFilter" placeholder="Filter…" oninput="whRenderSortHistory()"><div class="wh-scroll"><table><thead><tr><th>Cat</th><th>User/Stn</th><th>Box/Ref</th><th>Item/SKU</th><th>Specs</th><th>Qty</th></tr></thead><tbody id="whSortHistory"></tbody></table></div></section>
+    </div>
+    <div id="whSortPopup" class="hidden wh-modal"><div class="wh-dialog"><h3>Confirm Box Sorting</h3><div id="whSortSelectionSummary" class="wh-sort-summary"></div><div class="wh-field"><label>New Box Tracking No. *</label><input id="whNewBox" placeholder="Scan or enter new box tracking"></div><div class="wh-field"><label>Category / Reason *</label><select id="whSortCategory" onchange="document.getElementById('whSortOther').classList.toggle('hidden',this.value!=='Other')"><option>Back To Warehouse</option><option>Damage</option><option>PTS</option><option>Stock Transfer</option><option>Good Clearance</option><option>Production Concern</option><option>Other</option></select><input class="hidden" id="whSortOther" placeholder="Specify category"></div><p id="whSortCategoryPreview"></p><div class="wh-actions"><button id="whConfirmSortBtn" onclick="whConfirmSorting()">Confirm Transfer</button><button class="wh-secondary" onclick="whCloseSortPopup()">Cancel</button></div></div></div>
+    <div id="whBoxPopup" class="hidden wh-modal"><div class="wh-dialog"><h3>Box Transfer Details</h3><div class="wh-field"><label>Box Tracking No.</label><input id="whPopupBox" readonly></div><div class="wh-field"><label>Category</label><select id="whPopupCategory" onchange="document.getElementById('whPopupOther').classList.toggle('hidden',this.value!=='Other')"><option>Back To Warehouse</option><option>Damage</option><option>PTS</option><option>Stock Transfer</option><option>Other</option></select><input id="whPopupOther" class="hidden" placeholder="Specify category"></div><div class="wh-field"><label>Department</label><select id="whPopupDept"><option>Storage</option><option>QC</option><option>Outbound</option><option>Inbound</option><option>Fulfillment</option><option>Admin</option></select></div><div class="wh-actions"><button onclick="whAddTransferBox()">Add to Queue</button><button class="wh-secondary" onclick="document.getElementById('whBoxPopup').classList.add('hidden')">Cancel</button></div></div></div>
 
     <!-- ANALYTICS DASHBOARD -->
     <div id="dashboardView" class="hidden">
@@ -1130,7 +1192,8 @@ window.onload = () => {
     const el=document.getElementById(id); if(el) el.value=today;
   });
 
-  // Restore session
+  // v111: warehouse output mode has no login; employee attribution is per module.
+  /* Restore session
   try {
     const saved=JSON.parse(sessionStorage.getItem('whUser')||'null');
     if (saved&&saved.user&&saved.token) {
@@ -1139,12 +1202,17 @@ window.onload = () => {
       // Check for open attendance events
       restoreAttendanceState_();
     }
-  } catch(e){ sessionStorage.removeItem('whUser'); }
+  } catch(e){ sessionStorage.removeItem('whUser'); } */
+  currentUser={completeName:'',position:'WAREHOUSE',department:'WAREHOUSE'};
+  sessionToken=null;
+  document.getElementById('loginOverlay').style.display='none';
+  v111Init();
 
   // Load dropdowns
   google.script.run.withSuccessHandler(data=>{
     const fill=(id,list)=>{ const el=document.getElementById(id); if(el&&list) list.forEach(v=>el.add(new Option(v,v))); };
     const fillDL=(id,list)=>{ const el=document.getElementById(id); if(el&&list) list.forEach(v=>{ const o=document.createElement('option'); o.value=v; el.appendChild(o); }); };
+    v111FillEmployees(data.employees||[]);
     fill('reasonSelect',data.reasons);
     fill('storeSelect',data.stores);
     fill('destSelect',data.stores);
@@ -1175,7 +1243,8 @@ window.onload = () => {
   loadDashboardFilterOptions();
   setCategory('NEW DELIVER ITEM');
   setInterval(refreshHistory, 15000);
-  startStatusTick_();
+  // Status and attendance buttons retired from this output-only interface.
+
 };
 
 // ═══════════════════════════════════════════════════
@@ -1515,7 +1584,7 @@ function startStatusTick_() {
 // ═══════════════════════════════════════════════════
 function hideAllViews() {
   document.body.classList.remove('dashboard-wide');
-  ['workPanel','historyPanel','dashboardView','bauView','performanceView','myDashView','teamView']
+  ['workPanel','historyPanel','dashboardView','bauView','performanceView','myDashView','teamView','whTransferView','whSortingView','v111TeamView']
     .forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
 }
@@ -1647,6 +1716,7 @@ document.getElementById('itemScan').onkeydown=e=>{
 function validateBoxNo(val) { return /^[A-Z0-9]{2,5}-?[A-Z0-9]{4,9}$/i.test(String(val).trim()); }
 
 function handleGenerateBox() {
+  if (!v111SelectedEmployee()) return toast('Select employee first','warn');
   if (!currentUser) return toast('Please log in first.','warn');
   const b=document.getElementById('boxNo').value.trim().toUpperCase();
   if (!b) return toast('Enter Box Tracking No!','err');
@@ -1668,7 +1738,7 @@ function handleGenerateBox() {
   const payload={
     token:sessionToken, category:currentCategory,
     agingCategory:currentCategory==='AGING/SCANNING'?document.getElementById('agingCategory').value:'',
-    station:document.getElementById('station').value, scanBy:currentUser.completeName,
+    station:document.getElementById('station').value, scanBy:v111SelectedEmployee(),
     boxNo:b, supplierBox:document.getElementById('supplierBox').value||"",
     poMonth:document.getElementById('poMonth').value, poYear:document.getElementById('poYear').value,
     store:document.getElementById('storeSelect').value, reason:document.getElementById('reasonSelect').value,
@@ -3999,78 +4069,63 @@ renderMyDashboard = function(d) {
 
 
 
-<!-- v104 UNIFIED TOP CONTROL BAR: UI-only; shared by every module -->
-<style>
-#statusBar,#scannerIdentityStrip,#scannerFooter{display:none!important}
-#unifiedTopBar{
-  display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(150px,.7fr) minmax(150px,.7fr) auto;
-  align-items:stretch;background:#fff;border-bottom:1px solid #dfe5ec;
-  box-shadow:0 2px 9px rgba(18,32,51,.08);min-height:58px;flex:0 0 auto;z-index:650
+<!-- v112: unified top bar removed; date/time remain in sidebar -->
+
+
+
+
+<script id="v111-script">
+const v111EmployeeIds=['v111ScanEmployee','v111TransferEmployee','v111SortingEmployee'];
+let v111Employees=[];
+function v111Init(){
+  try{if(localStorage.getItem('v111Collapsed')==='1')document.body.classList.add('v111-collapsed')}catch(e){}
+  const update=()=>{const d=new Date();document.getElementById('v111Date').textContent=d.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});document.getElementById('v111Time').textContent=d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});};update();setInterval(update,1000);
+  const d=new Date();d.setDate(d.getDate()-1);document.getElementById('v111DashDate').value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 }
-.unified-top-cell{display:flex;align-items:center;gap:10px;padding:9px 16px;border-right:1px solid #edf0f3;min-width:0}
-.unified-top-cell:last-child{border-right:0}.unified-top-icon{width:34px;height:34px;border-radius:9px;background:#eef4fb;color:#122033;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
-.unified-top-copy{min-width:0}.unified-top-copy small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7a8797;margin-bottom:2px}.unified-top-copy strong{display:block;font-size:13px;color:#152338;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#unifiedModuleCell{background:#f8fafc;border-left:4px solid var(--module-accent,#168b4b)}
-#unifiedModuleCell .unified-top-icon{background:var(--module-soft,#e7f6ed);color:var(--module-accent,#168b4b)}
-#unifiedModuleName{color:var(--module-accent,#168b4b);font-size:14px;letter-spacing:.03em}
-#unifiedTopActions{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:8px 12px;white-space:nowrap}
-#unifiedTopActions button{height:34px;padding:0 13px;border-radius:7px;font-size:10.5px;font-weight:800;box-shadow:0 2px 5px rgba(0,0,0,.12)}
-#unifiedTopActions .btn-break,#unifiedTopActions .btn-lunch{background:linear-gradient(#ffd86a,#f4b740);color:#4b3500}
-#unifiedTopActions .btn-bau{background:#11a6d7;color:#fff}#unifiedTopActions .btn-resume{background:#168b4b;color:#fff}
-body{height:100vh}body.scanner-ui #unifiedTopBar{display:grid!important}
-@media(max-width:980px){#unifiedTopBar{grid-template-columns:1fr 1fr 1fr}#unifiedTopActions{grid-column:1/-1;justify-content:center;border-top:1px solid #edf0f3}.unified-top-cell{padding:8px 10px}}
-@media(max-width:620px){#unifiedTopBar{grid-template-columns:1fr 1fr}.unified-top-icon{display:none}#unifiedModuleCell{grid-column:1/-1}.unified-top-cell{padding:8px 10px}#unifiedTopActions{overflow-x:auto;justify-content:flex-start}}
-</style>
-<script>
-(function(){
-  function ensureUnifiedTopBar(){
-    let bar=document.getElementById('unifiedTopBar');
-    if(!bar){
-      bar=document.createElement('div');bar.id='unifiedTopBar';
-      bar.innerHTML=`
-        <div class="unified-top-cell" id="unifiedModuleCell"><span class="unified-top-icon">▣</span><span class="unified-top-copy"><small>Active Module</small><strong id="unifiedModuleName">New Delivery</strong></span></div>
-        <div class="unified-top-cell"><span class="unified-top-icon">📅</span><span class="unified-top-copy"><small>Date</small><strong id="unifiedDate">—</strong></span></div>
-        <div class="unified-top-cell"><span class="unified-top-icon">◷</span><span class="unified-top-copy"><small>Time</small><strong id="unifiedTime">—</strong></span></div>
-        <div id="unifiedTopActions"></div>`;
-      const bau=document.getElementById('bauActivityBar');
-      if(bau&&bau.parentNode) bau.parentNode.insertBefore(bar,bau);
-      else document.body.insertBefore(bar,document.body.firstChild);
-    }
-    const actions=document.getElementById('unifiedTopActions');
-    ['btnBreak','btnLunch','btnBauStart','btnResume'].forEach(id=>{const b=document.getElementById(id);if(b&&b.parentNode!==actions)actions.appendChild(b)});
-    return bar;
-  }
-  function visible(id){const e=document.getElementById(id);return e&&!e.classList.contains('hidden')}
-  function moduleName(){
-    const state=String(window.currentState||'SCANNING').toUpperCase();
-    if(state==='BREAK')return 'ON BREAK'; if(state==='LUNCH')return 'ON LUNCH';
-    if(state==='BAU')return 'NON-BAU'+(window.bauActivity?' — '+window.bauActivity:'');
-    if(visible('locationView'))return 'Location Mapping'; if(visible('myDashView'))return 'My Dashboard';
-    if(visible('teamView'))return 'Team Dashboard'; if(visible('performanceView'))return 'Operations Dashboard';
-    if(visible('dashboardView'))return 'Analytics Dashboard'; if(visible('bauView'))return 'Non-BAU Activity';
-    const raw=String(window.currentCategory||document.getElementById('formTitle')?.textContent||'').toUpperCase();
-    if(raw.includes('PULL'))return 'Pull Out'; if(raw.includes('AGING'))return 'Aging / Scanning'; if(raw.includes('OLD'))return 'Old Stock'; return 'New Delivery';
-  }
-  function moduleClass(name){
-    document.body.classList.remove('module-new','module-pull','module-aging','module-old');
-    if(/PULL/i.test(name))document.body.classList.add('module-pull');
-    else if(/AGING/i.test(name))document.body.classList.add('module-aging');
-    else if(/OLD|BREAK|LUNCH|NON-BAU/i.test(name))document.body.classList.add('module-old');
-    else document.body.classList.add('module-new');
-  }
-  function sync(){
-    ensureUnifiedTopBar();const now=new Date(),name=moduleName();moduleClass(name);
-    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
-    set('unifiedModuleName',name);set('unifiedDate',now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}));
-    set('unifiedTime',now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureUnifiedTopBar();sync()});else{ensureUnifiedTopBar();sync()}
-  setInterval(sync,500);
-})();
+function v111ToggleSidebar(){document.body.classList.toggle('v111-collapsed');try{localStorage.setItem('v111Collapsed',document.body.classList.contains('v111-collapsed')?'1':'0')}catch(e){}}
+function v111FillEmployees(names){
+  v111Employees=[...new Set(names.map(x=>String(x||'').trim()).filter(Boolean))].sort();
+  let saved='';try{saved=localStorage.getItem('v111Employee')||''}catch(e){}
+  v111EmployeeIds.forEach(id=>{const s=document.getElementById(id);if(!s)return;const old=s.value||saved;s.innerHTML='<option value="">Select employee</option>';v111Employees.forEach(n=>s.add(new Option(n,n)));if(v111Employees.includes(old))s.value=old;});
+  v111EmployeeChanged(document.getElementById('v111ScanEmployee'),false);
+}
+function v111SelectedEmployee(module){const id=module==='transfer'?'v111TransferEmployee':module==='sorting'?'v111SortingEmployee':'v111ScanEmployee';return document.getElementById(id)?.value||''}
+function v111EmployeeChanged(sel,sync=true){if(!sel)return;const name=sel.value;const scan=document.getElementById('scanBy');if(scan)scan.value=v111SelectedEmployee();if(sync&&name){try{localStorage.setItem('v111Employee',name)}catch(e){};v111EmployeeIds.forEach(id=>{const el=document.getElementById(id);if(el&&el!==sel)el.value=name});if(scan)scan.value=name;}if(typeof currentUser!=='undefined'&&currentUser)currentUser.completeName=name;}
+function v111AddEmployee(){
+  const modal=document.getElementById('v112EmployeeModal');
+  const input=document.getElementById('v112EmployeeName');
+  const error=document.getElementById('v112EmployeeError');
+  error.textContent='';input.value='';modal.classList.remove('hidden');
+  requestAnimationFrame(()=>input.focus());
+}
+function v112CloseEmployee(){
+  if(document.getElementById('v112EmployeeSave').disabled)return;
+  document.getElementById('v112EmployeeModal').classList.add('hidden');
+}
+function v112SaveEmployee(){
+  const input=document.getElementById('v112EmployeeName');
+  const error=document.getElementById('v112EmployeeError');
+  const n=input.value.trim().replace(/\s+/g,' ');
+  if(!n){error.textContent='Please enter the employee full name.';return;}
+  if(n.length>90){error.textContent='Employee name is too long.';return;}
+  if(v111Employees.some(x=>x.toLowerCase()===n.toLowerCase())){error.textContent='This employee is already in the list.';return;}
+  const btn=document.getElementById('v112EmployeeSave');
+  btn.disabled=true;btn.textContent='Saving...';error.textContent='';
+  google.script.run.withSuccessHandler(r=>{
+    btn.disabled=false;btn.textContent='Save Employee';
+    if(!r||!r.success){error.textContent=r?.message||'Unable to add employee';return;}
+    v111FillEmployees(r.employees||[]);
+    v111EmployeeIds.forEach(id=>{const s=document.getElementById(id);if(s)s.value=n});
+    v111EmployeeChanged(document.getElementById('v111ScanEmployee'));
+    document.getElementById('v112EmployeeModal').classList.add('hidden');
+    toast('Employee added','ok');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Save Employee';error.textContent=e.message||'Failed to add employee';}).v111AddEmployee(n);
+}
+function v111ShowDashboard(){hideAllViews();document.body.classList.add('dashboard-wide');document.getElementById('nav-me').classList.add('active');document.getElementById('v111TeamView').classList.remove('hidden');v111LoadDashboard()}
+function v111LoadDashboard(){const date=document.getElementById('v111DashDate').value;if(!date)return;const b=document.getElementById('v111Refresh');b.disabled=true;b.textContent='Loading...';google.script.run.withSuccessHandler(d=>{b.disabled=false;b.textContent='Refresh';if(d&&d.error)return toast(d.error,'err');v111RenderDashboard(d||{})}).withFailureHandler(e=>{b.disabled=false;b.textContent='Refresh';toast(e.message||'Dashboard failed','err')}).v111GetOutputDashboard(date)}
+function v111RenderDashboard(d){const f=n=>Number(n||0).toLocaleString('en-PH');document.getElementById('v111Qty').textContent=f(d.totalQty);document.getElementById('v111Boxes').textContent=f(d.totalBoxes);document.getElementById('v111Active').textContent=f(d.activeEmployees);document.getElementById('v111Target').textContent=d.targetPct==null?'Not set':d.targetPct+'%';const week=d.week||[];const max=Math.max(1,...week.map(x=>x.total||0));document.getElementById('v111WeekChart').innerHTML=week.map(day=>'<div class="v111-bar-row"><span>'+v111Escape(day.day)+'</span><div class="v111-track"><div class="v111-fill" style="width:'+Math.round((day.total||0)/max*100)+'%"></div></div><strong>'+f(day.total)+'</strong></div><small>'+Object.entries(day.categories||{}).map(([k,v])=>v111Escape(k)+': '+f(v)).join(' · ')+'</small>').join('')||'No records';const people=d.employees||[];const maxP=Math.max(1,...people.map(x=>x.qty||0));document.getElementById('v111EmpChart').innerHTML=people.map(p=>'<div class="v111-bar-row"><span title="'+v111Escape(p.name)+'">'+v111Escape(p.name)+'</span><div class="v111-track"><div class="v111-fill" style="width:'+Math.round(p.qty/maxP*100)+'%"></div></div><strong>'+f(p.qty)+'</strong></div>').join('')||'<p>No scanning records for selected date.</p>';document.getElementById('v111EmpRows').innerHTML=people.map(p=>'<tr><td>'+v111Escape(p.name)+'</td><td>'+f(p.qty)+'</td><td>'+f(p.boxes)+'</td><td>'+Object.entries(p.categories||{}).map(([k,v])=>v111Escape(k)+': '+f(v)).join(' · ')+'</td></tr>').join('')||'<tr><td colspan="4">No scanning output</td></tr>'}
+function v111Escape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 </script>
-
-
-
 </body>
 </html>
 
@@ -7143,193 +7198,67 @@ body.module-old{--module-accent:#64748b;--module-soft:#eef1f5}
 })();
 </script>
 
-<!-- v109 STORAGE PLANNING - additive module only; no existing workflow changes -->
-<style id="storage-planning-v109">
-  #storagePlanningView{grid-column:1/-1;width:100%;height:100%;overflow:auto;padding:0 2px 34px;}
-  .sp-wrap{display:flex;flex-direction:column;gap:12px;}
-  .sp-head{background:linear-gradient(135deg,#122033,#1c3452);color:#fff;border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;gap:14px;align-items:flex-end;flex-wrap:wrap;}
-  .sp-head h2{font-family:var(--mono);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px;}
-  .sp-head p{font-size:11px;color:#cbd5e1;margin:0;}
-  .sp-filters{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
-  .sp-field label{display:block;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cbd5e1;margin-bottom:3px;}
-  .sp-field input{height:32px;border:1px solid #49617c;border-radius:6px;background:#fff;color:#0f172a;padding:0 8px;font-family:var(--mono);font-size:11px;}
-  .sp-chip,.sp-load{height:32px;padding:0 10px;border-radius:6px;border:1px solid #49617c;background:#213a58;color:#fff;font-size:10px;font-weight:800;}
-  .sp-load{background:#168b4b;border-color:#168b4b;}
-  .sp-kpis{display:grid;grid-template-columns:repeat(8,minmax(125px,1fr));gap:9px;}
-  .sp-kpi{background:#fff;border:1px solid var(--border);border-radius:9px;padding:11px 12px;box-shadow:0 1px 3px rgba(0,0,0,.05);border-left:4px solid #2563eb;min-height:82px;}
-  .sp-kpi.green{border-left-color:#16a34a}.sp-kpi.orange{border-left-color:#d97706}.sp-kpi.red{border-left-color:#dc2626}.sp-kpi.purple{border-left-color:#7c3aed}
-  .sp-kpi label{display:block;font-size:8px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-  .sp-kpi strong{font-family:var(--mono);font-size:21px;color:#0f172a;display:block;line-height:1.05;}
-  .sp-kpi small{display:block;color:var(--muted);font-size:9px;margin-top:5px;}
-  .sp-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:12px;align-items:start;}
-  .sp-panel{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
-  .sp-panel h3{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);border-bottom:1px solid var(--border);padding-bottom:6px;margin:0 0 9px;}
-  .sp-status{border-radius:10px;padding:14px;border:1px solid var(--border);background:#f8fafc;}
-  .sp-status strong{display:block;font-family:var(--mono);font-size:22px;margin-bottom:5px;}
-  .sp-status.safe strong{color:#15803d}.sp-status.watch strong{color:#b45309}.sp-status.critical strong,.sp-status.over strong{color:#b91c1c}
-  .sp-status p{font-size:11px;color:#475569;line-height:1.55;margin:0;}
-  .sp-bar-row{display:grid;grid-template-columns:145px 1fr 72px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:10px;}
-  .sp-track{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;position:relative;}
-  .sp-fill{height:100%;background:#2563eb;border-radius:999px;}
-  .sp-fill.net{background:#16a34a;}
-  .sp-table-wrap{overflow:auto;max-height:330px;}
-  .sp-table{width:100%;border-collapse:collapse;font-size:10.5px;}
-  .sp-table th,.sp-table td{padding:7px 8px;border-bottom:1px solid #eef2f7;text-align:left;white-space:nowrap;}
-  .sp-table th{position:sticky;top:0;background:#f8fafc;color:var(--muted);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;z-index:2;}
-  .sp-rack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
-  .sp-rack{border:1px solid var(--border);border-radius:8px;padding:8px;background:#f8fafc;}
-  .sp-rack b{font-family:var(--mono);font-size:11px}.sp-rack span{display:block;font-size:9px;color:var(--muted);margin-top:3px;}
-  .sp-note{font-size:10px;color:var(--muted);line-height:1.5;padding:5px 0;}
-  @media(max-width:1400px){.sp-kpis{grid-template-columns:repeat(4,1fr)}}
-  @media(max-width:1000px){.sp-grid{grid-template-columns:1fr}.sp-rack-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:760px){.sp-kpis{grid-template-columns:repeat(2,1fr)}.sp-rack-grid{grid-template-columns:1fr}}
+<style>
+.wh-module{display:grid;grid-template-columns:minmax(370px,1fr) minmax(450px,1.1fr);gap:12px;padding:12px;width:100%;min-height:0;overflow:hidden;flex:1}.wh-module.hidden{display:none!important}.wh-work,.wh-live{background:#FFF9F5;border:1px solid #DDD3C2;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:hidden}.wh-loading{font-size:12px;color:#805038;white-space:nowrap}.wh-sort-summary{font-size:12px;color:#805038}.wh-live thead{background:#14243b;color:#f7f9ff}.wh-live h3{color:inherit}.wh-live tbody tr:nth-child(odd){background:#f1f6fb}.wh-live tbody tr:nth-child(even){background:#fff}.wh-live .cat-badge{display:inline-block;max-width:180px;white-space:normal}.wh-module h2{font-size:20px}.wh-module h3{font-size:15px}.wh-module p{font-size:12px;color:#805038}.wh-field{display:flex;flex-direction:column;gap:5px}.wh-field label{font-size:12px;font-weight:700}.wh-field input,.wh-field select,.wh-live input{min-height:36px;border:1px solid #DDD3C2;border-radius:6px;padding:7px;background:white;width:100%;color:#25241F}.wh-inline{display:flex;gap:8px;align-items:center}.wh-between{justify-content:space-between}.wh-inline input{flex:1;min-width:0}.wh-module button,.wh-dialog button{background:#B85F3D;color:white;border:0;border-radius:6px;padding:9px 12px;cursor:pointer;font-weight:600}.wh-module button.wh-secondary,.wh-dialog button.wh-secondary{background:#f1e8df;color:#805038}.wh-actions{display:flex;gap:8px;flex-wrap:wrap}.wh-scroll{overflow:auto;flex:1;min-height:80px}.wh-module table{width:100%;border-collapse:collapse;font-size:12px}.wh-module th,.wh-module td{border-bottom:1px solid #DDD3C2;text-align:left;padding:8px 5px;white-space:nowrap}.wh-module th{position:sticky;top:0;background:#FFF9F5}.wh-modal{position:fixed;inset:0;background:#0008;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px}.wh-modal.hidden{display:none!important}.wh-dialog{width:min(420px,100%);background:#FFF9F5;padding:22px;border-radius:12px;display:flex;flex-direction:column;gap:14px}.wh-dialog input,.wh-dialog select{padding:9px;border:1px solid #DDD3C2;border-radius:6px;width:100%}@media(max-width:900px){.wh-module{grid-template-columns:1fr;overflow:auto}.wh-work,.wh-live{min-height:320px}}
 </style>
 <script>
-(function(){
-  'use strict';
-  let spLastData=null;
-  const el=id=>document.getElementById(id);
-  const n=v=>Number(v)||0;
-  const fmt=v=>Math.round(n(v)).toLocaleString();
-  const pct=v=>(n(v)*100).toFixed(1)+'%';
-  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function dateKey(d){return d.toISOString().slice(0,10);}
-  function addDays(d,days){const x=new Date(d);x.setDate(x.getDate()+days);return x;}
+// v109: isolated warehouse transfer/sorting UI; existing scanning views unchanged.
+let whQueue=[],whTransferData=[],whSource=[],whSortHistoryData=[];
+const whEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const whVal=id=>document.getElementById(id).value.trim();
+const whName=()=>currentUser&&(currentUser.completeName||currentUser.name||currentUser.username)||'';
+function whRun(fn,args,success,failure){google.script.run.withSuccessHandler(success).withFailureHandler(e=>{if(failure)failure(e);toast(e.message||String(e),'warn');})[fn](...(args||[]));}
+function whShow(type){if(!currentUser)return toast('Please log in first','warn');hideAllViews();document.body.classList.add('dashboard-wide');document.getElementById(type==='transfer'?'whTransferView':'whSortingView').classList.remove('hidden');document.getElementById(type==='transfer'?'nav-transfer':'nav-sorting').classList.add('active');if(type==='transfer')whLoadTransfers();else whLoadSortingHistory();}
+function whOpenTransferBox(){const box=whVal('whTransferScan').toUpperCase();if(!box)return toast('Scan box first','warn');if(whQueue.some(x=>x.box===box))return toast('Box already in queue','warn');document.getElementById('whPopupBox').value=box;document.getElementById('whBoxPopup').classList.remove('hidden');}
+function whAddTransferBox(){const box=whVal('whPopupBox'),cat=whVal('whPopupCategory')==='Other'?whVal('whPopupOther'):whVal('whPopupCategory'),dept=whVal('whPopupDept');if(!cat||!dept)return toast('Category and department required','warn');whQueue.push({box,category:cat,dept});document.getElementById('whBoxPopup').classList.add('hidden');document.getElementById('whTransferScan').value='';whRenderQueue();document.getElementById('whTransferScan').focus();}
+function whRenderQueue(){document.getElementById('whTransferCount').textContent=whQueue.length;document.getElementById('whTransferQueue').innerHTML=whQueue.map((x,i)=>`<tr><td>${whEsc(x.box)}</td><td>${whEsc(x.category)}</td><td>${whEsc(x.dept)}</td><td><button class="wh-secondary" onclick="whQueue.splice(${i},1);whRenderQueue()">Remove</button></td></tr>`).join('');}
+function whSubmitTransfer(){if(!v111SelectedEmployee('transfer'))return toast('Select employee first','warn');if(!whQueue.length)return toast('Add boxes first','warn');if(!confirm('Save '+whQueue.length+' boxes as one transfer transaction?'))return;whRun('whSaveTransferBatch',[{user:v111SelectedEmployee('transfer'),boxes:whQueue}],r=>{if(!r.success)return toast('Transfer not saved','warn');whQueue=[];whRenderQueue();toast('Saved '+r.count+' boxes: '+r.id,'ok');whLoadTransfers();});}
+function whCloseTransfer(){if(whQueue.length&&!confirm('Clear '+whQueue.length+' untransferred boxes from this screen? No Google Sheets rows will be deleted.'))return;whQueue=[];whRenderQueue();toast('Transfer session closed','ok');}
+function whLoadTransfers(){whRun('whGetTransferRows',[],d=>{whTransferData=d||[];whRenderTransfers();});}
+function whRenderTransfers(){const q=whVal('whTransferFilter').toLowerCase();const rows=whTransferData.filter(x=>Object.values(x).join(' ').toLowerCase().includes(q));document.getElementById('whTransferRecords').innerHTML=rows.length?rows.map(x=>`<tr><td>${whEsc(x.box)}</td><td>${whEsc(x.dept)}</td><td>${whEsc(x.status)}</td><td>${whEsc(x.receivedDate||'—')}</td><td>${whEsc(x.receivedBy||'—')}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:25px;color:#805038">No transfer records yet</td></tr>';}
+let whSourceBusy=false,whSortBusy=false,whSortSelection=[];
+function whSourceLoading(on){whSourceBusy=on;const b=document.getElementById('whLoadSourceBtn'),m=document.getElementById('whSourceLoading');b.disabled=on;b.textContent=on?'Loading...':'Load';m.classList.toggle('hidden',!on);}
+function whLoadSource(){const box=whVal('whOldBox');if(!box)return toast('Enter old box tracking','warn');if(whSourceBusy)return;whSourceLoading(true);whRun('whGetSortingSource',[box],d=>{whSourceLoading(false);whSource=d||[];whRenderSource();if(!whSource.length)toast('No remaining SKUs found','warn');},()=>whSourceLoading(false));}
+function whRenderSource(){document.getElementById('whSortCount').textContent=whSource.length;document.getElementById('whSortRows').innerHTML=whSource.map((x,i)=>`<tr><td><input type="checkbox" class="wh-sort-check" data-index="${i}"></td><td>${whEsc(x.item)}<br><small>${whEsc(x.barcode)}</small></td><td>${whEsc(x.color)} / ${whEsc(x.size)}</td><td>${x.qty}</td></tr>`).join('');}
+function whSubmitSorting(){if(whSortBusy)return;whSortSelection=Array.from(document.querySelectorAll('.wh-sort-check:checked')).map(x=>whSource[Number(x.dataset.index)]).filter(Boolean);if(!whSortSelection.length)return toast('Select SKU rows first','warn');document.getElementById('whSortSelectionSummary').textContent=whSortSelection.length+' SKU rows • '+whSortSelection.reduce((a,x)=>a+Number(x.qty||0),0)+' pcs (fixed quantity)';document.getElementById('whSortCategoryPreview').textContent='Category saved: '+whVal('whSortCategory')+' - '+whVal('whOldBox').toUpperCase();document.getElementById('whSortPopup').classList.remove('hidden');document.getElementById('whNewBox').focus();}
+function whCloseSortPopup(){if(whSortBusy)return;document.getElementById('whSortPopup').classList.add('hidden');}
+function whConfirmSorting(){if(whSortBusy)return;if(!v111SelectedEmployee('sorting'))return toast('Select employee first','warn');const newBox=whVal('whNewBox'),category=whVal('whSortCategory')==='Other'?whVal('whSortOther'):whVal('whSortCategory');if(!newBox||!category)return toast('New box and category required','warn');const b=document.getElementById('whConfirmSortBtn');whSortBusy=true;b.disabled=true;b.textContent='Saving to Google Sheets...';const finish=()=>{whSortBusy=false;b.disabled=false;b.textContent='Confirm Transfer';};whRun('whSaveSortingBatch',[{user:v111SelectedEmployee('sorting'),newBox,category,items:whSortSelection}],r=>{finish();if(!r.success)return toast('Sorting not saved','warn');document.getElementById('whSortPopup').classList.add('hidden');toast('Transferred '+r.count+' SKU rows ('+r.qty+' pcs)','ok');whLoadSource();whLoadSortingHistory();},finish);}
+function whDoneSorting(){if(whSource.length&&!confirm('Clear working screen? Unsorted source rows remain available when scanned again.'))return;whSource=[];whRenderSource();document.getElementById('whOldBox').value='';document.getElementById('whNewBox').value='';document.getElementById('whSortPopup').classList.add('hidden');toast('Sorting session closed','ok');}
+function whLoadSortingHistory(){whRun('getAgingHistory',[''],d=>{whSortHistoryData=d||[];whRenderSortHistory();});}
+function whRenderSortHistory(){const q=whVal('whSortFilter').toLowerCase();const rows=whSortHistoryData.filter(x=>!x._error&&Object.values(x).join(' ').toLowerCase().includes(q));document.getElementById('whSortHistory').innerHTML=rows.map((x,i)=>`<tr style="cursor:pointer" onclick="whToggleSortDetails(${i})"><td>${catBadge(x.category,'AGING/SCANNING')}</td><td><small>${whEsc(x.station)}</small><br><strong>${whEsc(x.scanBy)}</strong></td><td>${whEsc(x.boxNo)}${x.supplierBox?'<br><small>S:'+whEsc(x.supplierBox)+'</small>':''}</td><td>${whEsc(x.brand)}<br><strong>${whEsc(x.barcode)}</strong><br><small>${whEsc(x.itemName)}</small></td><td>${whEsc(x.color)}<br>${whEsc(x.size)}</td><td><strong>${whEsc(x.qty)}</strong></td></tr><tr id="whSortDetails-${i}" class="hidden"><td colspan="6"><div class="details-container"><div>Date: <strong>${whEsc(x.date)}</strong></div><div>Duration: <strong>${whEsc(x.duration)}</strong></div><div>Start: <strong>${whEsc(x.start)}</strong></div><div>End: <strong>${whEsc(x.end)}</strong></div></div></td></tr>`).join('');}
+function whToggleSortDetails(i){document.getElementById('whSortDetails-'+i).classList.toggle('hidden');}
 
-  function ensureStoragePlanningNav(){
-    if(el('nav-storage-planning')) return;
-    const loc=el('nav-location');
-    const team=el('nav-team');
-    const anchor=loc||team;
-    if(!anchor) return;
-    const nav=document.createElement('div');
-    nav.className='nav-item'; nav.id='nav-storage-planning';
-    nav.innerHTML='&#128230; Storage Planning';
-    nav.onclick=showStoragePlanning;
-    anchor.insertAdjacentElement('afterend',nav);
-  }
-  function ensureStoragePlanningView(){
-    if(el('storagePlanningView')) return;
-    const main=document.querySelector('.main-wrapper'); if(!main) return;
-    const view=document.createElement('div'); view.id='storagePlanningView'; view.className='hidden';
-    view.innerHTML=`<div class="sp-wrap">
-      <div class="sp-head">
-        <div><h2>Storage Planning</h2><p>Warehouse capacity, incoming inventory, and storage utilization forecast.</p></div>
-        <div class="sp-filters">
-          <div class="sp-field"><label>Start Date</label><input type="date" id="spStart"></div>
-          <div class="sp-field"><label>End Date</label><input type="date" id="spEnd"></div>
-          <button class="sp-chip" onclick="setStoragePlanningPreset('30')">30 Days</button>
-          <button class="sp-chip" onclick="setStoragePlanningPreset('90')">90 Days</button>
-          <button class="sp-chip" onclick="setStoragePlanningPreset('q4')">Q4</button>
-          <button class="sp-load" id="spLoadBtn" onclick="loadStoragePlanning()">LOAD PLAN</button>
-        </div>
-      </div>
-      <div class="sp-kpis">
-        <div class="sp-kpi"><label>Total Storage Slots</label><strong id="spTotalSlots">0</strong><small id="spRackMeta">0 racks</small></div>
-        <div class="sp-kpi green"><label>Current Boxes</label><strong id="spCurrentBoxes">0</strong><small id="spCurrentOcc">0% occupied</small></div>
-        <div class="sp-kpi green"><label>Free Slots Now</label><strong id="spFreeNow">0</strong><small id="spAvailRacks">0 available racks</small></div>
-        <div class="sp-kpi purple"><label>Incoming Forecast</label><strong id="spIncomingBoxes">0</strong><small id="spIncomingQty">0 expected qty</small></div>
-        <div class="sp-kpi orange"><label>Gross Peak Occupancy</label><strong id="spGrossPeak">0%</strong><small>conservative, no releases</small></div>
-        <div class="sp-kpi green"><label>Net Peak Estimate</label><strong id="spNetPeak">0%</strong><small id="spReleaseRate">0 boxes/day outbound</small></div>
-        <div class="sp-kpi red"><label>Capacity Gap</label><strong id="spGap">0</strong><small id="spRackNeed">0 extra racks</small></div>
-        <div class="sp-kpi"><label>Planning Period</label><strong id="spDays">0d</strong><small id="spPeriodText">-</small></div>
-      </div>
-      <div class="sp-grid">
-        <div class="sp-panel"><h3>Storage Projection Timeline</h3><div id="spProjection"></div></div>
-        <div class="sp-panel"><h3>Capacity Assessment</h3><div id="spAssessment"></div></div>
-      </div>
-      <div class="sp-grid">
-        <div class="sp-panel"><h3>Incoming Deliveries</h3><div class="sp-table-wrap" id="spIncoming"></div></div>
-        <div class="sp-panel"><h3>Recommended Storage Racks</h3><div id="spRacks"></div></div>
-      </div>
-      <div class="sp-panel"><h3>Planning Assumptions</h3><div id="spAssumptions"></div></div>
-    </div>`;
-    main.appendChild(view);
-  }
-
-  window.setStoragePlanningPreset=function(mode){
-    ensureStoragePlanningView();
-    const today=new Date(); let start=new Date(today), end=new Date(today);
-    if(mode==='30') end=addDays(today,29);
-    else if(mode==='90') end=addDays(today,89);
-    else if(mode==='q4'){
-      const y=today.getFullYear();
-      start=new Date(y,9,1); end=new Date(y,11,31);
-      if(today>end){start=new Date(y+1,9,1);end=new Date(y+1,11,31);}
-    }
-    el('spStart').value=dateKey(start); el('spEnd').value=dateKey(end);
-  };
-
-  window.showStoragePlanning=function(){
-    if(typeof currentUser==='undefined'||!currentUser) return typeof toast==='function'&&toast('Please log in first.','warn');
-    if(typeof isAdminUser==='function'&&!isAdminUser()) return typeof toast==='function'&&toast('Admin access required.','warn');
-    ensureStoragePlanningNav(); ensureStoragePlanningView();
-    if(typeof hideAllViews==='function') hideAllViews();
-    document.body.classList.add('dashboard-wide');
-    el('nav-storage-planning').classList.add('active');
-    el('storagePlanningView').classList.remove('hidden');
-    if(!el('spStart').value||!el('spEnd').value) setStoragePlanningPreset('90');
-    loadStoragePlanning();
-  };
-
-  window.loadStoragePlanning=function(){
-    if(!el('storagePlanningView')) return;
-    const btn=el('spLoadBtn'); if(btn){btn.disabled=true;btn.textContent='LOADING...';}
-    if(typeof showLoader==='function') showLoader(true);
-    google.script.run.withSuccessHandler(res=>{
-      if(typeof showLoader==='function') showLoader(false);
-      if(btn){btn.disabled=false;btn.textContent='LOAD PLAN';}
-      if(!res||!res.success){if(typeof toast==='function')toast((res&&res.message)||'Unable to load Storage Planning.','err');return;}
-      spLastData=res; renderStoragePlanning(res);
-    }).withFailureHandler(err=>{
-      if(typeof showLoader==='function') showLoader(false);
-      if(btn){btn.disabled=false;btn.textContent='LOAD PLAN';}
-      if(typeof toast==='function')toast((err&&err.message)||'Unable to load Storage Planning.','err');
-    }).getStoragePlanning({token:sessionToken,start:el('spStart').value,end:el('spEnd').value});
-  };
-
-  function renderStoragePlanning(d){
-    const c=d.capacity||{}, f=d.forecast||{};
-    el('spTotalSlots').textContent=fmt(c.totalSlots); el('spRackMeta').textContent=fmt(c.totalRacks)+' racks x '+fmt(c.capacityPerRack)+' slots';
-    el('spCurrentBoxes').textContent=fmt(c.currentBoxes); el('spCurrentOcc').textContent=pct(c.currentOccupancy)+' occupied';
-    el('spFreeNow').textContent=fmt(c.freeSlotsNow); el('spAvailRacks').textContent=fmt(c.availableRacks)+' racks with space';
-    el('spIncomingBoxes').textContent=fmt(f.incomingBoxes); el('spIncomingQty').textContent=fmt(f.incomingQty)+' expected qty';
-    el('spGrossPeak').textContent=pct(f.grossPeakOccupancy); el('spNetPeak').textContent=pct(f.netPeakOccupancy);
-    el('spReleaseRate').textContent=(n(f.historicalPullOutBoxesPerDay)).toFixed(1)+' boxes/day historical pull-out';
-    el('spGap').textContent=fmt(f.capacityGap); el('spRackNeed').textContent=fmt(f.additionalRacksNeeded)+' extra racks at peak';
-    const days=Math.max(1,Math.round((new Date(d.end+'T00:00:00')-new Date(d.start+'T00:00:00'))/86400000)+1);
-    el('spDays').textContent=days+'d'; el('spPeriodText').textContent=d.start+' to '+d.end;
-
-    const st=String(f.status||'SAFE'); const cls=st==='SAFE'?'safe':st==='WATCH'?'watch':st==='CRITICAL'?'critical':'over';
-    let action='Current storage buffer is sufficient for the selected planning period.';
-    if(st==='WATCH') action='Capacity is getting tight. Reserve high-free-slot racks and review outbound timing before major arrivals.';
-    if(st==='CRITICAL') action='Peak storage is close to full. Accelerate pull-out/transfer activity and prepare contingency space.';
-    if(st==='OVER CAPACITY') action='Forecast exceeds PL rack capacity. Additional storage or pre-arrival inventory release is required.';
-    el('spAssessment').innerHTML=`<div class="sp-status ${cls}"><strong>${esc(st)}</strong><p>${esc(action)}</p><p style="margin-top:8px"><b>Gross peak:</b> ${fmt(f.grossPeakBoxes)} boxes (${pct(f.grossPeakOccupancy)})<br><b>Net estimate:</b> ${fmt(f.netPeakBoxes)} boxes (${pct(f.netPeakOccupancy)})<br><b>Current free space:</b> ${fmt(c.freeSlotsNow)} slots</p></div>`;
-
-    const weeks=d.weekly||[]; const cap=Math.max(1,n(c.totalSlots));
-    el('spProjection').innerHTML=weeks.length?weeks.map(w=>{
-      const gp=Math.min(100,n(w.grossOccupancy)*100), np=Math.min(100,n(w.netOccupancy)*100);
-      return `<div class="sp-bar-row"><div><b>${esc(w.start)}</b><br><span style="color:var(--muted)">${esc(w.end)} | +${fmt(w.incomingBoxes)} boxes</span></div><div><div class="sp-track" title="Gross ${pct(w.grossOccupancy)}"><div class="sp-fill" style="width:${gp}%"></div></div><div class="sp-track" style="margin-top:4px" title="Net ${pct(w.netOccupancy)}"><div class="sp-fill net" style="width:${np}%"></div></div></div><div style="text-align:right;font-family:var(--mono)">${pct(w.grossOccupancy)}<br><span style="color:#15803d">${pct(w.netOccupancy)}</span></div></div>`;
-    }).join(''):'<div class="dash-empty">No projection data.</div>';
-
-    const rows=d.incoming||[];
-    el('spIncoming').innerHTML=rows.length?`<table class="sp-table"><thead><tr><th>ETA</th><th>Supplier</th><th>Item</th><th>Expected Qty</th><th>Forecast Boxes</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.supplier||'-')}</td><td>${esc(r.itemName||'-')}</td><td>${fmt(r.expectedQty)}</td><td title="${esc(r.boxSource||'')}">${fmt(r.expectedBoxes)}</td><td>${esc(r.inboundStatus||'-')}</td></tr>`).join('')}</tbody></table>`:'<div class="dash-empty">No unfinished inbound deliveries in this planning period.</div>';
-
-    const racks=d.recommendedRacks||[];
-    el('spRacks').innerHTML=racks.length?`<div class="sp-rack-grid">${racks.map(r=>`<div class="sp-rack"><b>${esc(r.code)}</b><span>${fmt(r.availableSlots)} free slots</span><span>${fmt(r.boxCount)}/${fmt(c.capacityPerRack)} boxes | ${pct(r.occupancy)}</span></div>`).join('')}</div>`:'<div class="dash-empty">No available PL racks.</div>';
-    el('spAssumptions').innerHTML=(d.assumptions||[]).map(x=>`<div class="sp-note">- ${esc(x)}</div>`).join('');
-  }
-
-  const oldHide=window.hideAllViews;
-  window.hideAllViews=function(){
-    if(typeof oldHide==='function') oldHide();
-    const v=el('storagePlanningView'); if(v)v.classList.add('hidden');
-    const n1=el('nav-storage-planning'); if(n1)n1.classList.remove('active');
-  };
-
-  function boot(){ensureStoragePlanningNav();ensureStoragePlanningView();}
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
-  setInterval(()=>{ensureStoragePlanningNav();ensureStoragePlanningView();},3000);
-})();
 </script>
+<style>
+/* Retired modules are hidden in warehouse-facing navigation only. */
+#nav-location,#nav-storage,#nav-ops,#nav-team{display:none!important}
+</style>
+
+<!-- v112: app-native Add Employee dialog -->
+<div id="v112EmployeeModal" class="v112-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v112EmployeeTitle" onclick="if(event.target===this)v112CloseEmployee()">
+  <div class="v112-modal-card">
+    <div class="v112-modal-title"><h3 id="v112EmployeeTitle">Add New Employee</h3><button type="button" aria-label="Close" onclick="v112CloseEmployee()">×</button></div>
+    <label for="v112EmployeeName">Employee Full Name *</label>
+    <input id="v112EmployeeName" type="text" maxlength="90" autocomplete="off" placeholder="Enter employee full name" onkeydown="if(event.key==='Enter')v112SaveEmployee();if(event.key==='Escape')v112CloseEmployee()">
+    <p class="v112-modal-hint">The employee will appear in the dropdowns of all operational modules.</p>
+    <div id="v112EmployeeError" class="v112-modal-error" role="alert"></div>
+    <div class="v112-modal-actions"><button type="button" class="v112-cancel" onclick="v112CloseEmployee()">Cancel</button><button id="v112EmployeeSave" type="button" class="v112-save" onclick="v112SaveEmployee()">Save Employee</button></div>
+  </div>
+</div>
+<style id="v112-layout-fixes">
+/* The v104 top bar must never occupy layout space. */
+#unifiedTopBar,#scannerIdentityStrip,#statusBar,#bauActivityBar,.top-operation-bar{display:none!important}
+body.scanner-ui #unifiedTopBar{display:none!important}
+.v112-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.56)}
+.v112-modal.hidden{display:none!important}
+.v112-modal-card{width:min(440px,100%);background:#FFF9F5;color:#25241F;border:1px solid #DDD3C2;border-radius:15px;box-shadow:0 20px 60px rgba(0,0,0,.24);padding:22px}
+.v112-modal-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.v112-modal-title h3{font-size:18px;margin:0}.v112-modal-title button{border:0;background:transparent;font-size:25px;cursor:pointer;color:#805038}
+.v112-modal-card label{display:block;font-weight:700;font-size:12px;margin-bottom:8px}
+.v112-modal-card input{width:100%;box-sizing:border-box;height:42px;border:1px solid #DDD3C2;border-radius:7px;background:white;padding:0 12px;font-size:14px}
+.v112-modal-card input:focus{outline:2px solid #B85F3D;outline-offset:1px}
+.v112-modal-hint{font-size:11px;color:#805038;margin:9px 0 6px}.v112-modal-error{min-height:20px;font-size:12px;color:#b42318}
+.v112-modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:10px}
+.v112-modal-actions button{padding:10px 17px;border-radius:7px;border:0;cursor:pointer;font-weight:700}
+.v112-cancel{background:#eee5dd;color:#805038}.v112-save{background:#B85F3D;color:#fff}.v112-save:disabled{opacity:.55;cursor:wait}
+</style>
